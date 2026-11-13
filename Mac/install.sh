@@ -68,8 +68,8 @@ export HOMEBREW_NO_ENV_HINTS=1
 export HOMEBREW_CURLRC="$HOME_DIR/settings/homebrew-curlrc"
 ok "brew $(brew --version | head -1)"
 
-# ─── 2. Command-line tools (22)
-FORMULAE="gh node python rust yt-dlp ffmpeg tesseract tesseract-lang pandoc poppler whisper-cpp opencc git-lfs xcodegen mas cloudflared ollama powershell rclone ripgrep opencode sevenzip coreutils"
+# ─── 2. Command-line tools (23)
+FORMULAE="gh node python python@3.14 rust yt-dlp ffmpeg tesseract tesseract-lang pandoc poppler whisper-cpp opencc git-lfs xcodegen mas cloudflared ollama powershell rclone ripgrep opencode sevenzip coreutils"
 log "Command-line tools"
 for f in $FORMULAE; do
   if brew list --formula "$f" >/dev/null 2>&1; then ok "$f already installed"
@@ -129,9 +129,12 @@ accept_xcode
 
 # ─── 5. Python packages
 log "Python packages"
-python3 -m pip install --user --break-system-packages -q -r "$HOME_DIR/settings/requirements-user.txt" \
-  && ok "Homebrew Python packages" || warn "Homebrew Python packages failed to install"
-/usr/bin/python3 -m pip install --user -q -r "$HOME_DIR/settings/requirements-system-python.txt" \
+# Homebrew's newest python3 can be ahead of what the pinned packages support
+# (markitdown and docling require Python below 3.15), so they go into 3.14;
+# settings/home/.zprofile makes python3 and pip3 in Terminal mean 3.14.
+/opt/homebrew/bin/python3.14 -m pip install --user --break-system-packages --no-warn-script-location -q -r "$HOME_DIR/settings/requirements-user.txt" \
+  && ok "Python 3.14 packages" || warn "Python 3.14 packages failed to install"
+/usr/bin/python3 -m pip install --user --no-warn-script-location -q -r "$HOME_DIR/settings/requirements-system-python.txt" \
   && ok "System Python packages" || warn "System Python packages failed to install"
 /usr/bin/python3 -m playwright install chromium >/dev/null 2>&1 && ok "Playwright browser" || warn "Playwright browser failed to install"
 

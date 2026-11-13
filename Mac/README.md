@@ -22,10 +22,10 @@ The script can be run again at any time; anything already installed is skipped.
 
 | Category | Contents |
 |---|---|
-| Command-line tools | gh, node, python, rust, ffmpeg, yt-dlp, tesseract (with Traditional Chinese), pandoc, poppler, whisper-cpp, opencc, git-lfs, xcodegen, mas, cloudflared, ollama, powershell, rclone, ripgrep, opencode, 7zip, coreutils |
+| Command-line tools | gh, node, python, Python 3.14, rust, ffmpeg, yt-dlp, tesseract (with Traditional Chinese), pandoc, poppler, whisper-cpp, opencc, git-lfs, xcodegen, mas, cloudflared, ollama, powershell, rclone, ripgrep, opencode, 7zip, coreutils |
 | Apps | Docker, Chrome, Discord, Telegram, Claude, Claude Code, ChatGPT, Codex, Grok Bot, VS Code, Rectangle, AppCleaner, IINA, OBS, Obsidian, LibreOffice, Google Drive |
 | App Store | Xcode, LINE, WhatsApp, Dashlane, Surfshark, Keynote, Numbers, Pages, GarageBand, iMovie |
-| Python packages | `settings/requirements-user.txt`, `settings/requirements-system-python.txt` |
+| Python packages | `settings/requirements-user.txt` into Python 3.14, `settings/requirements-system-python.txt` into the macOS Python |
 | transcribe | Local speech-to-text for recordings, with the large-v3 speech model |
 | Font sync | Two-way sync with the Drive folder "AvalonLotus Mac - Font" at login and every 30 minutes |
 | Mac settings | Click wallpaper to show desktop, bottom-left and bottom-right hot corners, screen saver delay, Terminal settings, Git identity |

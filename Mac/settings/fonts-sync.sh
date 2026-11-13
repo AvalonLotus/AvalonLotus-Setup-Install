@@ -11,7 +11,7 @@ set -uo pipefail
 SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
 # fontTools lives in a user site tied to one Python version; after a Homebrew
 # upgrade the Command Line Tools Python may be the one that still has it.
-for py in /opt/homebrew/bin/python3 /usr/local/bin/python3 /usr/bin/python3; do
+for py in /opt/homebrew/bin/python3.14 /opt/homebrew/bin/python3 /usr/local/bin/python3 /usr/bin/python3; do
   if [ -x "$py" ] && "$py" -c 'import fontTools' 2>/dev/null; then
     exec "$py" "$SELF_DIR/font_sync.py"
   fi
