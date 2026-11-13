@@ -36,6 +36,22 @@ sudo -v || true
 ( while kill -0 "$$" 2>/dev/null; do sudo -n true 2>/dev/null; sleep 50; done ) &
 SUDO_KEEPALIVE=$!
 trap 'kill "$SUDO_KEEPALIVE" 2>/dev/null' EXIT
+
+# Once Xcode is in /Applications, git, brew and /usr/bin/python3 stop with
+# "You have not agreed to the Xcode license" until its license is accepted.
+# Run at the start (Xcode from an earlier run) and after the App Store step
+# (Xcode installed by this run), while sudo is active, so nothing is typed.
+accept_xcode() {
+  [ -d /Applications/Xcode.app ] || return 0
+  if ! /usr/bin/xcodebuild -license check >/dev/null 2>&1; then
+    sudo /usr/bin/xcodebuild -license accept >/dev/null 2>&1 && ok "Xcode license accepted" || warn "Xcode license not accepted"
+  fi
+  if ! /usr/bin/xcodebuild -checkFirstLaunchStatus >/dev/null 2>&1; then
+    sudo /usr/bin/xcodebuild -runFirstLaunch >/dev/null 2>&1 && ok "Xcode components" || warn "Xcode components failed to install"
+  fi
+}
+accept_xcode
+
 if ! command -v brew >/dev/null 2>&1 && [ ! -x /opt/homebrew/bin/brew ]; then
   NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || { echo "Homebrew installation failed"; exit 1; }
 fi
@@ -108,14 +124,8 @@ while IFS='|' read -r id name; do
   else mas install "$id" && ok "$name" || warn "$name failed to install (check that you are signed in to the App Store)"; fi
 done <<< "$MAS_APPS"
 
-# Until the Xcode license is accepted, git, brew and /usr/bin/python3 stop with
-# "You have not agreed to the Xcode license", so accept it and install Xcode's
-# first-launch components here, while sudo is still active, before anything
-# below needs them.
-if [ -d /Applications/Xcode.app ]; then
-  sudo xcodebuild -license accept >/dev/null 2>&1 && ok "Xcode license accepted" || warn "Xcode license not accepted"
-  sudo xcodebuild -runFirstLaunch >/dev/null 2>&1 && ok "Xcode components" || warn "Xcode components failed to install"
-fi
+# Xcode may have been installed just now; accept its license before the steps below.
+accept_xcode
 
 # ─── 5. Python packages
 log "Python packages"
