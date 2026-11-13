@@ -65,6 +65,9 @@ sudo -n true 2>/dev/null || sudo -v || true
 export HOMEBREW_SUDO_CHECKED=1
 export HOMEBREW_NO_EMOJI=1
 export HOMEBREW_NO_ENV_HINTS=1
+# Newer Homebrew asks "Do you want to proceed with the installation? [y/n]"
+# before installing anything with dependencies; install without asking.
+export HOMEBREW_NO_ASK=1
 export HOMEBREW_CURLRC="$HOME_DIR/settings/homebrew-curlrc"
 ok "brew $(brew --version | head -1)"
 
