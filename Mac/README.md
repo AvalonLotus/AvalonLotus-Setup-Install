@@ -7,9 +7,14 @@
 ## Usage
 
 1. Sign in to the App Store.
-2. Put this whole folder anywhere on the Mac.
-3. In Terminal, run `bash "<this folder>/install.sh"`.
-4. Sign in to Google Drive and set the "AvalonLotus Mac - Font" folder to Available offline (font sync needs it).
+2. In Terminal, run the one-line install:
+
+   ```bash
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/AvalonLotus/AvalonLotus-Setup-Install/main/Mac/bootstrap.sh)"
+   ```
+
+   Or put this whole folder anywhere on the Mac and run `bash "<this folder>/install.sh"`.
+3. Sign in to Google Drive and set the "AvalonLotus Mac - Font" folder to Available offline (font sync needs it).
 
 The script can be run again at any time; anything already installed is skipped.
 
@@ -29,6 +34,7 @@ The script can be run again at any time; anything already installed is skipped.
 
 | File | Purpose |
 |---|---|
+| `bootstrap.sh` | One-line install: downloads this repo with curl and tar, then runs `install.sh` |
 | `install.sh` | Installs everything above; copies this folder to `~/Mac-Setup` first |
 | `transcribe.sh` | `transcribe <audio-or-video-file> [output-dir]`; writes `.txt` and `.srt`; audio never leaves the Mac |
 | `settings/fonts-sync.sh`, `settings/font_sync.py`, `settings/font_names.py` | Font sync, run by the LaunchAgent `com.avalonlotus.font-sync` |
