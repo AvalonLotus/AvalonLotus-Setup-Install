@@ -132,9 +132,9 @@ log "Python packages"
 # Homebrew's newest python3 can be ahead of what the pinned packages support
 # (markitdown and docling require Python below 3.15), so they go into 3.14;
 # settings/home/.zprofile makes python3 and pip3 in Terminal mean 3.14.
-/opt/homebrew/bin/python3.14 -m pip install --user --break-system-packages --no-warn-script-location -q -r "$HOME_DIR/settings/requirements-user.txt" \
+/opt/homebrew/bin/python3.14 -m pip install --user --break-system-packages --no-warn-script-location --disable-pip-version-check -q -r "$HOME_DIR/settings/requirements-user.txt" \
   && ok "Python 3.14 packages" || warn "Python 3.14 packages failed to install"
-/usr/bin/python3 -m pip install --user --no-warn-script-location -q -r "$HOME_DIR/settings/requirements-system-python.txt" \
+/usr/bin/python3 -m pip install --user --no-warn-script-location --disable-pip-version-check -q -r "$HOME_DIR/settings/requirements-system-python.txt" \
   && ok "System Python packages" || warn "System Python packages failed to install"
 /usr/bin/python3 -m playwright install chromium >/dev/null 2>&1 && ok "Playwright browser" || warn "Playwright browser failed to install"
 
