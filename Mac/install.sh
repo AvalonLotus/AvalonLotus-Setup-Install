@@ -48,6 +48,7 @@ eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shell
 sudo -n true 2>/dev/null || sudo -v || true
 export HOMEBREW_SUDO_CHECKED=1
 export HOMEBREW_NO_EMOJI=1
+export HOMEBREW_NO_ENV_HINTS=1
 export HOMEBREW_CURLRC="$HOME_DIR/settings/homebrew-curlrc"
 ok "brew $(brew --version | head -1)"
 
@@ -71,7 +72,7 @@ claude|Claude
 claude-code|
 chatgpt|ChatGPT
 codex|
-grok-bot|
+grok-bot|Grok Bot
 visual-studio-code|Visual Studio Code
 rectangle|Rectangle
 appcleaner|AppCleaner
