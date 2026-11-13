@@ -7,19 +7,24 @@
 set -uo pipefail
 
 SRC_DIR="$(cd "$(dirname "$0")" && pwd)"
-HOME_DIR="$HOME/Mac-Setup"
+# Hidden, so the copy does not show up as a second setup folder in Finder.
+HOME_DIR="$HOME/.local/share/avalonlotus-mac-setup"
 FAILS=()
 
 log()  { printf '\n\033[1m== %s\033[0m\n' "$1"; }
 ok()   { printf '  \033[32m✓\033[0m %s\n' "$1"; }
 warn() { printf '  \033[33m!\033[0m %s\n' "$1"; FAILS+=("$1"); }
 
-# ─── 0. Copy this folder to the fixed location ~/Mac-Setup (font sync and transcribe run from there)
+# ─── 0. Copy this folder to the fixed hidden location (font sync and transcribe run from there)
 log "Copying the setup folder to $HOME_DIR"
 if [ "$SRC_DIR" != "$HOME_DIR" ]; then
+  # Replace the copy as a whole, so files removed from the repo do not linger.
+  rm -rf "$HOME_DIR"
   mkdir -p "$HOME_DIR"
   cp -R "$SRC_DIR/." "$HOME_DIR/"
 fi
+# Earlier versions copied it to ~/Mac-Setup; remove that copy when it is ours.
+if [ -f "$HOME/Mac-Setup/install.sh" ] && [ -d "$HOME/Mac-Setup/settings" ]; then rm -rf "$HOME/Mac-Setup"; fi
 ok "$HOME_DIR"
 
 # ─── 1. Homebrew
@@ -35,6 +40,13 @@ if ! command -v brew >/dev/null 2>&1 && [ ! -x /opt/homebrew/bin/brew ]; then
   NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || { echo "Homebrew installation failed"; exit 1; }
 fi
 eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv)"
+# Each brew command clears the sudo password before its first sudo step
+# (utils/sudo.sh runs `sudo --reset-timestamp` unless HOMEBREW_SUDO_CHECKED=1),
+# so every app that needs sudo asked again. The password was already checked
+# above, so tell brew the check is done. A newly installed Homebrew may have
+# cleared it too, so ask once more only in that case.
+sudo -n true 2>/dev/null || sudo -v || true
+export HOMEBREW_SUDO_CHECKED=1
 export HOMEBREW_NO_EMOJI=1
 export HOMEBREW_CURLRC="$HOME_DIR/settings/homebrew-curlrc"
 ok "brew $(brew --version | head -1)"
@@ -48,12 +60,33 @@ for f in $FORMULAE; do
 done
 
 # ─── 3. Apps (17)
-CASKS="docker google-chrome discord telegram claude claude-code chatgpt codex grok-bot visual-studio-code rectangle appcleaner iina obs obsidian libreoffice google-drive"
+# cask|app in /Applications; an app installed another way (downloaded, App
+# Store) is skipped instead of reinstalled. Casks without an app name are
+# checked through brew only.
+CASKS="docker|Docker
+google-chrome|Google Chrome
+discord|Discord
+telegram|Telegram
+claude|Claude
+claude-code|
+chatgpt|ChatGPT
+codex|
+grok-bot|
+visual-studio-code|Visual Studio Code
+rectangle|Rectangle
+appcleaner|AppCleaner
+iina|IINA
+obs|OBS
+obsidian|Obsidian
+libreoffice|LibreOffice
+google-drive|Google Drive"
 log "Apps"
-for c in $CASKS; do
+while IFS='|' read -r c app; do
+  [ -z "$c" ] && continue
   if brew list --cask "$c" >/dev/null 2>&1; then ok "$c already installed"
-  else brew install --cask "$c" && ok "$c" || warn "$c failed to install (ignore this if it was installed another way)"; fi
-done
+  elif [ -n "$app" ] && [ -d "/Applications/$app.app" ]; then ok "$c already installed (outside Homebrew)"
+  else brew install --cask "$c" && ok "$c" || warn "$c failed to install"; fi
+done <<< "$CASKS"
 
 # ─── 4. App Store apps (10; requires being signed in to the App Store)
 MAS_APPS="497799835|Xcode
@@ -132,7 +165,8 @@ defaults -currentHost write com.apple.screensaver idleTime -int 120
 killall Dock 2>/dev/null || true
 ok "Click wallpaper to show desktop, hot corners, screen saver"
 # Terminal settings (the old file is backed up first)
-if [ -f "$HOME/.zprofile" ] && ! cmp -s "$HOME/.zprofile" "$HOME_DIR/settings/home/.zprofile"; then cp "$HOME/.zprofile" "$HOME/.zprofile.bak-$(date +%Y%m%d%H%M%S)"; fi
+# Only the first run keeps a backup, so repeated runs leave one ~/.zprofile.bak, not a pile.
+if [ -f "$HOME/.zprofile" ] && [ ! -e "$HOME/.zprofile.bak" ] && ! cmp -s "$HOME/.zprofile" "$HOME_DIR/settings/home/.zprofile"; then cp "$HOME/.zprofile" "$HOME/.zprofile.bak"; fi
 cp "$HOME_DIR/settings/home/.zprofile" "$HOME/.zprofile"
 ok "Terminal settings"
 # Git identity
@@ -141,6 +175,12 @@ git config --global user.email "Lien.Founder@AvalonLotus.com"
 git config --global credential.helper osxkeychain
 git lfs install >/dev/null 2>&1 || true
 ok "Git identity"
+
+# ─── Clean up
+# Homebrew keeps every downloaded installer (several GB); the apps are installed,
+# so delete the downloads and old versions.
+log "Clean up"
+brew cleanup --prune=all >/dev/null 2>&1 && ok "Homebrew downloads removed" || warn "brew cleanup failed"
 
 # ─── Result
 log "Done"

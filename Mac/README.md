@@ -35,7 +35,7 @@ The script can be run again at any time; anything already installed is skipped.
 | File | Purpose |
 |---|---|
 | `bootstrap.sh` | One-line install: downloads this repo with curl and tar, then runs `install.sh` |
-| `install.sh` | Installs everything above; copies this folder to `~/Mac-Setup` first |
+| `install.sh` | Installs everything above; copies this folder to the hidden `~/.local/share/avalonlotus-mac-setup` first and removes Homebrew downloads at the end |
 | `transcribe.sh` | `transcribe <audio-or-video-file> [output-dir]`; writes `.txt` and `.srt`; audio never leaves the Mac |
 | `settings/fonts-sync.sh`, `settings/font_sync.py`, `settings/font_names.py` | Font sync, run by the LaunchAgent `com.avalonlotus.font-sync` |
 | `settings/home/.zprofile` | Terminal settings copied to `~/.zprofile` (the old file is backed up) |

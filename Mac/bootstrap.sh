@@ -6,7 +6,7 @@
 # install.sh needs the settings/ folder beside it, so it cannot be piped from
 # curl on its own. This script downloads the whole repo with curl and tar (both
 # ship with macOS, so no git is needed yet), then runs install.sh, which copies
-# the Mac folder to ~/Mac-Setup before anything else.
+# the Mac folder to ~/.local/share/avalonlotus-mac-setup before anything else.
 #
 set -euo pipefail
 
