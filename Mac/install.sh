@@ -1,0 +1,144 @@
+#!/usr/bin/env bash
+#
+# AvalonLotus Mac setup
+# Usage: in Terminal on the Mac, run  bash "<this folder>/install.sh"
+# Safe to run again: anything already installed is skipped.
+#
+set -uo pipefail
+
+SRC_DIR="$(cd "$(dirname "$0")" && pwd)"
+HOME_DIR="$HOME/Mac-Setup"
+FAILS=()
+
+log()  { printf '\n\033[1m== %s\033[0m\n' "$1"; }
+ok()   { printf '  \033[32m✓\033[0m %s\n' "$1"; }
+warn() { printf '  \033[33m!\033[0m %s\n' "$1"; FAILS+=("$1"); }
+
+# ─── 0. Copy this folder to the fixed location ~/Mac-Setup (font sync and transcribe run from there)
+log "Copying the setup folder to $HOME_DIR"
+if [ "$SRC_DIR" != "$HOME_DIR" ]; then
+  mkdir -p "$HOME_DIR"
+  cp -R "$SRC_DIR/." "$HOME_DIR/"
+fi
+ok "$HOME_DIR"
+
+# ─── 1. Homebrew
+log "Homebrew"
+sudo -v || true
+if ! command -v brew >/dev/null 2>&1 && [ ! -x /opt/homebrew/bin/brew ]; then
+  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || { echo "Homebrew installation failed"; exit 1; }
+fi
+eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv)"
+export HOMEBREW_NO_EMOJI=1
+export HOMEBREW_CURLRC="$HOME_DIR/settings/homebrew-curlrc"
+ok "brew $(brew --version | head -1)"
+
+# ─── 2. Command-line tools (22)
+FORMULAE="gh node python rust yt-dlp ffmpeg tesseract tesseract-lang pandoc poppler whisper-cpp opencc git-lfs xcodegen mas cloudflared ollama powershell rclone ripgrep opencode sevenzip coreutils"
+log "Command-line tools"
+for f in $FORMULAE; do
+  if brew list --formula "$f" >/dev/null 2>&1; then ok "$f already installed"
+  else brew install "$f" && ok "$f" || warn "$f failed to install"; fi
+done
+
+# ─── 3. Apps (17)
+CASKS="docker google-chrome discord telegram claude claude-code chatgpt codex grok-bot visual-studio-code rectangle appcleaner iina obs obsidian libreoffice google-drive"
+log "Apps"
+for c in $CASKS; do
+  if brew list --cask "$c" >/dev/null 2>&1; then ok "$c already installed"
+  else brew install --cask "$c" && ok "$c" || warn "$c failed to install (ignore this if it was installed another way)"; fi
+done
+
+# ─── 4. App Store apps (10; requires being signed in to the App Store)
+MAS_APPS="497799835|Xcode
+539883307|LINE
+310633997|WhatsApp
+517914548|Dashlane
+1437809329|Surfshark
+361285480|Keynote
+361304891|Numbers
+361309726|Pages
+682658836|GarageBand
+408981434|iMovie"
+log "App Store apps"
+INSTALLED_MAS="$(mas list 2>/dev/null | awk '{print $1}' || true)"
+while IFS='|' read -r id name; do
+  [ -z "$id" ] && continue
+  if printf '%s\n' "$INSTALLED_MAS" | grep -qx "$id"; then ok "$name already installed"
+  else mas install "$id" && ok "$name" || warn "$name failed to install (check that you are signed in to the App Store)"; fi
+done <<< "$MAS_APPS"
+
+# ─── 5. Python packages
+log "Python packages"
+python3 -m pip install --user --break-system-packages -q -r "$HOME_DIR/settings/requirements-user.txt" \
+  && ok "Homebrew Python packages" || warn "Homebrew Python packages failed to install"
+/usr/bin/python3 -m pip install --user -q -r "$HOME_DIR/settings/requirements-system-python.txt" \
+  && ok "System Python packages" || warn "System Python packages failed to install"
+/usr/bin/python3 -m playwright install chromium >/dev/null 2>&1 && ok "Playwright browser" || warn "Playwright browser failed to install"
+
+# ─── 6. transcribe (local speech-to-text for recordings)
+log "transcribe"
+WHISPER_DIR="$HOME/.cache/whisper-models"
+WHISPER_MODEL="$WHISPER_DIR/ggml-large-v3.bin"
+WHISPER_BYTES=3095033483
+mkdir -p "$WHISPER_DIR"
+if [ "$(stat -f %z "$WHISPER_MODEL" 2>/dev/null || echo 0)" = "$WHISPER_BYTES" ]; then ok "Speech model already downloaded"
+else
+  curl -fL -C - --retry 3 -o "$WHISPER_MODEL" "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3.bin" \
+    && ok "Speech model downloaded" || warn "Speech model download incomplete; run this script again to resume it"
+fi
+chmod +x "$HOME_DIR/transcribe.sh"
+ln -sf "$HOME_DIR/transcribe.sh" "$(brew --prefix)/bin/transcribe" && ok "transcribe command"
+
+# ─── 7. Font sync (at login and every 30 minutes)
+log "Font sync"
+FONT_PLIST="$HOME/Library/LaunchAgents/com.avalonlotus.font-sync.plist"
+FONT_LOG_DIR="$HOME/.local/state/font-sync"
+mkdir -p "$FONT_LOG_DIR" "$HOME/Library/LaunchAgents"
+cat > "$FONT_PLIST" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.avalonlotus.font-sync</string>
+  <key>ProgramArguments</key><array>
+    <string>/bin/bash</string><string>$HOME_DIR/settings/fonts-sync.sh</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>StartInterval</key><integer>1800</integer>
+  <key>StandardOutPath</key><string>$FONT_LOG_DIR/font-sync.log</string>
+  <key>StandardErrorPath</key><string>$FONT_LOG_DIR/font-sync.log</string>
+</dict></plist>
+PLIST
+launchctl bootout "gui/$(id -u)" "$FONT_PLIST" 2>/dev/null || true
+launchctl bootstrap "gui/$(id -u)" "$FONT_PLIST" 2>/dev/null && ok "Font sync started" || warn "Font sync will start at the next login"
+
+# ─── 8. Mac settings (4)
+log "Mac settings"
+# Click the wallpaper to show the desktop
+defaults write com.apple.WindowManager EnableStandardClickToShowDesktop -bool true
+# Hot corners: bottom left / bottom right
+defaults write com.apple.dock wvous-bl-corner -int 5
+defaults write com.apple.dock wvous-bl-modifier -int 0
+defaults write com.apple.dock wvous-br-corner -int 1
+defaults write com.apple.dock wvous-br-modifier -int 1048576
+# Screen saver delay (seconds)
+defaults -currentHost write com.apple.screensaver idleTime -int 120
+killall Dock 2>/dev/null || true
+ok "Click wallpaper to show desktop, hot corners, screen saver"
+# Terminal settings (the old file is backed up first)
+if [ -f "$HOME/.zprofile" ] && ! cmp -s "$HOME/.zprofile" "$HOME_DIR/settings/home/.zprofile"; then cp "$HOME/.zprofile" "$HOME/.zprofile.bak-$(date +%Y%m%d%H%M%S)"; fi
+cp "$HOME_DIR/settings/home/.zprofile" "$HOME/.zprofile"
+ok "Terminal settings"
+# Git identity
+git config --global user.name  "AvalonLotus"
+git config --global user.email "Lien.Founder@AvalonLotus.com"
+git config --global credential.helper osxkeychain
+git lfs install >/dev/null 2>&1 || true
+ok "Git identity"
+
+# ─── Result
+log "Done"
+if [ ${#FAILS[@]} -eq 0 ]; then ok "Everything succeeded"
+else printf '  These items need another look:\n'; for x in "${FAILS[@]}"; do printf '   - %s\n' "$x"; done; fi
+echo
+echo "Reminder: font sync needs Google Drive signed in, with the \"AvalonLotus Mac - Font\" folder set to Available offline."
