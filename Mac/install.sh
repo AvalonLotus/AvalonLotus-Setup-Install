@@ -25,6 +25,12 @@ ok "$HOME_DIR"
 # ─── 1. Homebrew
 log "Homebrew"
 sudo -v || true
+# sudo forgets the password after about 5 minutes, and the installs below take
+# much longer, so refresh it in the background until this script ends: the
+# password is asked once instead of again for every app that needs it.
+( while kill -0 "$$" 2>/dev/null; do sudo -n true 2>/dev/null; sleep 50; done ) &
+SUDO_KEEPALIVE=$!
+trap 'kill "$SUDO_KEEPALIVE" 2>/dev/null' EXIT
 if ! command -v brew >/dev/null 2>&1 && [ ! -x /opt/homebrew/bin/brew ]; then
   NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || { echo "Homebrew installation failed"; exit 1; }
 fi
