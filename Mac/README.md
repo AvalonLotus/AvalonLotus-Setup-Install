@@ -1,4 +1,9 @@
-<p align="center"><img src="../assets/avalonlotus-stacked-white-on-black.png" width="320" alt="AvalonLotus"></p>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/avalonlotus-stacked-white.png" width="272">
+    <img src="../assets/avalonlotus-stacked-white-on-black.png" width="320" alt="AvalonLotus">
+  </picture>
+</p>
 
 <p align="center">Design is not measured by its form, but by the lives it changes.</p>
 
