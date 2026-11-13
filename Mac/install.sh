@@ -108,6 +108,15 @@ while IFS='|' read -r id name; do
   else mas install "$id" && ok "$name" || warn "$name failed to install (check that you are signed in to the App Store)"; fi
 done <<< "$MAS_APPS"
 
+# Until the Xcode license is accepted, git, brew and /usr/bin/python3 stop with
+# "You have not agreed to the Xcode license", so accept it and install Xcode's
+# first-launch components here, while sudo is still active, before anything
+# below needs them.
+if [ -d /Applications/Xcode.app ]; then
+  sudo xcodebuild -license accept >/dev/null 2>&1 && ok "Xcode license accepted" || warn "Xcode license not accepted"
+  sudo xcodebuild -runFirstLaunch >/dev/null 2>&1 && ok "Xcode components" || warn "Xcode components failed to install"
+fi
+
 # ─── 5. Python packages
 log "Python packages"
 python3 -m pip install --user --break-system-packages -q -r "$HOME_DIR/settings/requirements-user.txt" \
