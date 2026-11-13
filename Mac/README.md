@@ -1,4 +1,4 @@
-<p align="center"><img src="../assets/avalonlotus-banner.png" width="100%" alt="AvalonLotus"></p>
+<p align="center"><img src="../assets/avalonlotus-stacked-white-on-black-banner.png" width="100%" alt="AvalonLotus"></p>
 
 <p align="center">Design is not measured by its form, but by the lives it changes.</p>
 
