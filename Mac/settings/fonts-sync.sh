@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 #
-# Two-way font sync with "AvalonLotus Mac - Font" in Google Drive for desktop:
-# add the fonts in ~/Library/Fonts that the backup has under no name, then
-# install the backup's fonts that this Mac has under no name.
+# Two-way font sync with the company font folder "AvalonLotus - Font" (in the
+# company folder on this Mac, else found through Google Drive for desktop):
+# add the fonts in ~/Library/Fonts that the folder has under no name, then
+# install the folder's fonts that this Mac has under no name.
 #
 # Run at login and every 30 minutes by the LaunchAgent com.avalonlotus.font-sync,
-# which install.sh writes. Without the Drive folder it does nothing.
+# which install.sh writes. Without the font folder it does nothing.
 #
 set -uo pipefail
 SELF_DIR="$(cd "$(dirname "$0")" && pwd)"

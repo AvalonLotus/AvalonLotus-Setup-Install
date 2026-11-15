@@ -1,4 +1,4 @@
-"""Two-way sync of ~/Library/Fonts with "AvalonLotus Mac - Font" in Google Drive.
+"""Two-way sync of ~/Library/Fonts with the company font folder (FOLDER_NAME below).
 
 No font file is ever deleted, overwritten or renamed: a name, once written, stays.
 """
@@ -20,9 +20,10 @@ from font_names import covered_by, identify  # noqa: E402
 
 logging.getLogger("fontTools").setLevel(logging.CRITICAL)
 
-FOLDER_NAME = "AvalonLotus Mac - Font"
+FOLDER_NAME = "AvalonLotus - Font"
+COMPANY_FOLDER = "AvalonLotus International Pty., Ltd"
 # The index file name, the group folder names and the index headings below are
-# data already stored in the Drive backup and read back by read_index, so they
+# data already stored in the font folder and read back by read_index, so they
 # keep their Traditional Chinese names; renaming them would split the backup.
 INDEX = "字型清單.md"  # "Font list"
 FONT = (".otf", ".ttf", ".ttc")
@@ -219,8 +220,16 @@ def restore(src, dest):
     return copied, skipped
 
 
-def drive_folder():
-    """The backup folder inside a Google Drive for desktop mount, or None."""
+def font_folder():
+    """The company font folder: in the company folder on this Mac, else inside a Google Drive for desktop mount.
+
+    The company folder comes from $AVALONLOTUS_ROOT when set, else ~/<COMPANY_FOLDER>. A new Mac without the
+    company folder finds the same folder through Google Drive. None when neither has it.
+    """
+    company = os.environ.get("AVALONLOTUS_ROOT") or os.path.join(os.path.expanduser("~"), COMPANY_FOLDER)
+    local = os.path.join(company, FOLDER_NAME)
+    if os.path.isdir(local):
+        return local
     roots = glob.glob(os.path.expanduser("~/Library/CloudStorage/GoogleDrive-*/*"))
     for root in roots + [os.path.expanduser("~/Google Drive/My Drive")]:
         if not os.path.isdir(root):
@@ -240,9 +249,9 @@ def main():
         print("Another sync is running; skipping this run", file=sys.stderr)
         return 0
     try:
-        drive = drive_folder()
+        drive = font_folder()
         if not drive:
-            print(f'"{FOLDER_NAME}" not found in Google Drive; skipping')
+            print(f'"{FOLDER_NAME}" not found in the company folder or Google Drive; skipping')
             return 0
         added = export(FONTS_DIR, drive)
         copied, skipped = restore(drive, FONTS_DIR)
