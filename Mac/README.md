@@ -14,7 +14,7 @@
    ```
 
    Or put this whole folder anywhere on the Mac and run `bash "<this folder>/install.sh"`.
-3. Font sync uses the company font folder "AvalonLotus - Font" in `~/AvalonLotus International Pty., Ltd`. On a Mac without the company folder, sign in to Google Drive and set that folder to Available offline.
+3. Font sync keeps two copies of the company font folder "AvalonLotus - Font" in step: `~/AvalonLotus International Pty., Ltd/AvalonLotus - Font` and `My Drive/AvalonLotus International Pty., Ltd/AvalonLotus - Font` in Google Drive. On a Mac without the company folder, sign in to Google Drive; set the Drive copy to Available offline.
 
 The script can be run again at any time; anything already installed is skipped.
 
@@ -27,7 +27,7 @@ The script can be run again at any time; anything already installed is skipped.
 | App Store | Xcode, LINE, WhatsApp, Dashlane, Surfshark, Keynote, Numbers, Pages, GarageBand, iMovie |
 | Python packages | `settings/requirements-user.txt` into Python 3.14, `settings/requirements-system-python.txt` into the macOS Python |
 | transcribe | Local speech-to-text for recordings, with the large-v3 speech model |
-| Font sync | Two-way sync with the company font folder "AvalonLotus - Font" at login and every 30 minutes |
+| Font sync | Two-way sync with both copies of the company font folder "AvalonLotus - Font" (company folder and Google Drive) at login and every 30 minutes; it only adds fonts, never deletes |
 | Mac settings | Click wallpaper to show desktop, bottom-left and bottom-right hot corners, screen saver delay, Terminal settings, Git identity |
 
 ## Files

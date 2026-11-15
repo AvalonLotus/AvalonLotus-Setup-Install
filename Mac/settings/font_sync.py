@@ -220,27 +220,25 @@ def restore(src, dest):
     return copied, skipped
 
 
-def font_folder():
-    """The company font folder: in the company folder on this Mac, else inside a Google Drive for desktop mount.
+def font_folders():
+    """Every copy of the company font folder on this Mac, the local one first.
 
-    The company folder comes from $AVALONLOTUS_ROOT when set, else ~/<COMPANY_FOLDER>. A new Mac without the
-    company folder finds the same folder through Google Drive. None when neither has it.
+    The local copy is <company>/<FOLDER_NAME>, the company folder being $AVALONLOTUS_ROOT when set, else
+    ~/<COMPANY_FOLDER>. The Google Drive copy mirrors that path in My Drive: <My Drive>/<COMPANY_FOLDER>/<FOLDER_NAME>.
+    Copies are told apart by their real path, so a link to the other copy is not counted twice.
     """
     company = os.environ.get("AVALONLOTUS_ROOT") or os.path.join(os.path.expanduser("~"), COMPANY_FOLDER)
-    local = os.path.join(company, FOLDER_NAME)
-    if os.path.isdir(local):
-        return local
-    roots = glob.glob(os.path.expanduser("~/Library/CloudStorage/GoogleDrive-*/*"))
-    for root in roots + [os.path.expanduser("~/Google Drive/My Drive")]:
-        if not os.path.isdir(root):
-            continue
-        base = root.rstrip(os.sep).count(os.sep)
-        for r, dirs, _ in os.walk(root):
-            if os.path.basename(r) == FOLDER_NAME:
-                return r
-            if r.count(os.sep) - base >= 3:
-                dirs[:] = []
-    return None
+    candidates = [os.path.join(company, FOLDER_NAME)]
+    for my_drive in ("我的雲端硬碟", "My Drive"):
+        candidates += sorted(glob.glob(os.path.join(
+            os.path.expanduser("~/Library/CloudStorage"), "GoogleDrive-*", my_drive, COMPANY_FOLDER, FOLDER_NAME)))
+    folders, seen = [], set()
+    for path in candidates:
+        real = os.path.realpath(path)
+        if os.path.isdir(path) and real not in seen:
+            seen.add(real)
+            folders.append(path)
+    return folders
 
 
 def main():
@@ -248,21 +246,27 @@ def main():
     if not held:
         print("Another sync is running; skipping this run", file=sys.stderr)
         return 0
+    status = 0
     try:
-        drive = font_folder()
-        if not drive:
+        folders = font_folders()
+        if not folders:
             print(f'"{FOLDER_NAME}" not found in the company folder or Google Drive; skipping')
             return 0
-        added = export(FONTS_DIR, drive)
-        copied, skipped = restore(drive, FONTS_DIR)
-        print(f"Added to backup: {len(added)}, newly installed here: {copied}, already present: {skipped}"
-              + "".join(f"\n  + {a}" for a in added))
-    except (OSError, ValueError) as e:
-        print(f"Cannot read {getattr(e, 'filename', None) or e}; skipping this run", file=sys.stderr)
-        return 1
+        # Each copy first takes this Mac's fonts, then gives this Mac its own fonts, so a font that is new in any
+        # copy reaches every copy by the next run. Nothing is ever deleted, so the copies only grow together.
+        for folder in folders:
+            try:
+                added = export(FONTS_DIR, folder)
+                copied, skipped = restore(folder, FONTS_DIR)
+            except (OSError, ValueError) as e:
+                print(f"\n  {folder}: cannot read {getattr(e, 'filename', None) or e}; skipped", file=sys.stderr)
+                status = 1
+                continue
+            print(f"\n  {folder}: added {len(added)}, newly installed here {copied}, already present {skipped}"
+                  + "".join(f"\n    + {a}" for a in added))
     finally:
         held.close()
-    return 0
+    return status
 
 
 if __name__ == "__main__":

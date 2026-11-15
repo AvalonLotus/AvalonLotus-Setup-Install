@@ -213,4 +213,4 @@ log "Done"
 if [ ${#FAILS[@]} -eq 0 ]; then ok "Everything succeeded"
 else printf '  These items need another look:\n'; for x in "${FAILS[@]}"; do printf '   - %s\n' "$x"; done; fi
 echo
-echo "Reminder: font sync uses \"AvalonLotus - Font\" in the company folder; a Mac without the company folder needs Google Drive signed in with that folder set to Available offline."
+echo "Reminder: font sync keeps \"AvalonLotus - Font\" in the company folder and in Google Drive (My Drive, same path) in step; sign in to Google Drive so it can reach the Drive copy."

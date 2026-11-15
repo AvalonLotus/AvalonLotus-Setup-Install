@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 #
-# Two-way font sync with the company font folder "AvalonLotus - Font" (in the
-# company folder on this Mac, else found through Google Drive for desktop):
-# add the fonts in ~/Library/Fonts that the folder has under no name, then
-# install the folder's fonts that this Mac has under no name.
+# Two-way font sync with every copy of the company font folder "AvalonLotus - Font":
+# the one in the company folder on this Mac and the one at the same path in
+# Google Drive's My Drive. For each copy: add the fonts in ~/Library/Fonts that
+# the copy has under no name, then install the copy's fonts that this Mac has
+# under no name.
 #
 # Run at login and every 30 minutes by the LaunchAgent com.avalonlotus.font-sync,
 # which install.sh writes. Without the font folder it does nothing.
