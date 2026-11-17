@@ -60,11 +60,11 @@ if [ -n "${DURATION:-}" ]; then
   if [ "$DURATION" -ge 60 ]; then dim "$((DURATION / 60)) min of audio"; else dim "${DURATION}s of audio"; fi
 fi
 
-# The prompt pins the output to Traditional Chinese (whisper
-# defaults to Simplified for zh).
-# -mc 64 trims the context window: at the full 224 the decoder occasionally
-# latches onto a phrase and repeats it for whole minutes.
-PROMPT_ZH="以下是繁體中文的錄音內容。"
+# The prompt pins the output to Traditional Chinese (whisper defaults to
+# Simplified for zh); its text lives in transcribe-prompt.zh-TW.txt next to this
+# script. -mc 64 trims the context window: at the full 224 the decoder
+# occasionally latches onto a phrase and repeats it for whole minutes.
+PROMPT_ZH="$(cat "$(dirname "$0")/transcribe-prompt.zh-TW.txt")"
 PROMPT_ARGS=()
 [ "$WLANG" = "zh" ] && PROMPT_ARGS=(--prompt "$PROMPT_ZH")
 
