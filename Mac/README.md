@@ -39,5 +39,5 @@ The script can be run again at any time; anything already installed is skipped.
 | `install.sh` | Installs everything above; copies this folder to the hidden `~/.local/share/avalonlotus-mac-setup` first and removes Homebrew downloads at the end |
 | `transcribe.sh` | `transcribe <audio-or-video-file> [output-dir]`; writes `.txt` and `.srt`; audio never leaves the Mac |
 | `settings/fonts-sync.sh`, `settings/font_sync.py`, `settings/font_names.py` | Font sync, run by the LaunchAgent `com.avalonlotus.font-sync` |
-| `settings/home/.zprofile` | Terminal settings copied to `~/.zprofile` (the old file is backed up); turns usage telemetry off with `DISABLE_TELEMETRY=1` |
+| `settings/home/.zprofile` | Terminal settings copied to `~/.zprofile` (the old file is backed up); puts Docker Desktop's commands in `~/.docker/bin` on `PATH`, sends Rust build output to `~/Developer/cargo-target` through `CARGO_TARGET_DIR`, and turns usage telemetry off with `DISABLE_TELEMETRY=1` |
 | `settings/homebrew-curlrc` | Download speed limits for Homebrew |
