@@ -202,6 +202,24 @@ git config --global credential.helper osxkeychain
 git lfs install >/dev/null 2>&1 || true
 ok "Git identity"
 
+# ─── 9. Claude Code plugins (1)
+# Modern Web Guidance points coding agents at current web platform practices.
+# Its telemetry is off through DISABLE_TELEMETRY in settings/home/.zprofile.
+log "Claude Code plugins"
+MWG_PLUGIN="modern-web-guidance@googlechrome"
+MWG_TIMEOUT=300
+if ! command -v claude >/dev/null 2>&1; then
+  warn "$MWG_PLUGIN not installed: Claude Code is missing; install it, then run this script again"
+elif claude plugin list 2>/dev/null | grep -q "$MWG_PLUGIN"; then
+  gtimeout "$MWG_TIMEOUT" claude plugin marketplace update googlechrome </dev/null >/dev/null 2>&1 \
+    && gtimeout "$MWG_TIMEOUT" claude plugin update "$MWG_PLUGIN" </dev/null >/dev/null 2>&1 \
+    && ok "$MWG_PLUGIN updated" || warn "$MWG_PLUGIN update failed; run this script again"
+else
+  gtimeout "$MWG_TIMEOUT" claude plugin install modern-web-guidance \
+    --marketplace GoogleChrome/modern-web-guidance </dev/null >/dev/null 2>&1 \
+    && ok "$MWG_PLUGIN" || warn "$MWG_PLUGIN failed to install; run this script again"
+fi
+
 # ─── Clean up
 # Homebrew keeps every downloaded installer (several GB); the apps are installed,
 # so delete the downloads and old versions.

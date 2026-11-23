@@ -29,6 +29,7 @@ The script can be run again at any time; anything already installed is skipped.
 | transcribe | Local speech-to-text for recordings, with the large-v3 speech model |
 | Font sync | Two-way sync with both copies of the company font folder "AvalonLotus - Font" (company folder and Google Drive) at login and every 30 minutes; it only adds fonts, never deletes |
 | Mac settings | Click wallpaper to show desktop, bottom-left and bottom-right hot corners, screen saver delay, Terminal settings, Git identity |
+| Claude Code plugins | Modern Web Guidance (`modern-web-guidance@googlechrome`); a rerun updates it |
 
 ## Files
 
@@ -38,5 +39,5 @@ The script can be run again at any time; anything already installed is skipped.
 | `install.sh` | Installs everything above; copies this folder to the hidden `~/.local/share/avalonlotus-mac-setup` first and removes Homebrew downloads at the end |
 | `transcribe.sh` | `transcribe <audio-or-video-file> [output-dir]`; writes `.txt` and `.srt`; audio never leaves the Mac |
 | `settings/fonts-sync.sh`, `settings/font_sync.py`, `settings/font_names.py` | Font sync, run by the LaunchAgent `com.avalonlotus.font-sync` |
-| `settings/home/.zprofile` | Terminal settings copied to `~/.zprofile` (the old file is backed up) |
+| `settings/home/.zprofile` | Terminal settings copied to `~/.zprofile` (the old file is backed up); turns usage telemetry off with `DISABLE_TELEMETRY=1` |
 | `settings/homebrew-curlrc` | Download speed limits for Homebrew |
